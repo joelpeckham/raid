@@ -1,3 +1,1 @@
-$("#testID").addEventListener("click", ()=>{
-    $("#testID").innerText = "jQuery"
-});
+$("#testID")[0].innerText = "jQuery";
