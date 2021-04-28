@@ -7,14 +7,82 @@ body{
 }
 #headerContainer{
     display: flex;
-
     margin-top: 1rem;
     align-items: center;
     justify-content:space-between;
+    margin-bottom: 0.5rem;
 }
 #driveBay{
     background-color: var(--bs-secondary);
-    width:100px;
-    height:100px;
+    width:100%;
+    height:250px;
+    display:flex;
+    align-items: center;
+    overflow-x: scroll;
+    padding-left: 15px;
+    border-radius: 10px;
+    /* box-shadow: 2px 2px 8px 0px rgba(0,0,0,0.3); */
 }
 
+.drive{
+    width:150px;
+    min-width: 150px;
+    height:200px;
+    background-color: #f2f2f2;
+    margin-right:15px;
+    border-radius: 10px;
+    box-shadow: 2px 2px 8px 0px rgba(0,0,0,0.1);
+    display:grid;
+    grid-template-rows: 1fr 40px;
+}
+.drive .btn .fa {
+    padding:none;
+    margin:none;
+}
+.drive .btn{
+    width:100%;
+    height:100%;
+    display:flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0px;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+}
+
+.driveGridContainer{
+    display:grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr 1fr 1fr;
+}
+.driveBlock:nth-child(4){
+    border-top-right-radius: 10px;
+}
+.driveBlock:nth-child(1){
+    border-top-left-radius: 10px;
+}
+.driveBlock{
+    display:flex;
+    align-items: center;
+    justify-content: center;
+    border-left: 1px solid #888;
+    border-top: 1px solid #888;
+    cursor: help;
+}
+.driveBlock:hover{
+    background-color: gainsboro;
+}
+.driveBlock p {
+    margin:0px;
+}
+.driveBlock.leftBorder{
+   border-left: none;
+}
+.driveBlock.topBorder{
+    border-top: none;
+}
+
+.wildcard{
+    color: var(--bs-danger);
+    cursor: default;
+}
