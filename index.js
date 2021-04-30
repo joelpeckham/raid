@@ -12,14 +12,13 @@ function uuidv4() {
   });
 }
 
-setInterval(() => {
-  let characters =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+function randomChar(characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"){
   let charactersLength = characters.length;
+  return(characters.charAt(Math.floor(Math.random() * charactersLength)));
+}
+setInterval(() => {
   for (e of document.getElementsByClassName("wildcard")) {
-    e.innerText = characters.charAt(
-      Math.floor(Math.random() * charactersLength)
-    );
+    e.innerText = randomChar();
   }
 }, 80);
 
@@ -145,7 +144,16 @@ $("resetButton").addEventListener("click", () => {
 $("raidSelect").addEventListener("change", () => {
   driveBay.reset();
 });
-
+$("randomDataButton").addEventListener("click", () => {
+  randomData = "";
+  for(i=0; i<200;i++){
+    randomData+=randomChar();
+  }
+  $('writeDataTextArea').value = randomData;
+});
+$("clearDataButton").addEventListener("click", () => {
+  $('writeDataTextArea').value = '';
+});
 // ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 // UI BINDINGS END
 // ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄

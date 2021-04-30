@@ -93,3 +93,12 @@ body {
   color: var(--bs-danger);
   cursor: default;
 }
+
+#writeData{
+    margin-top: 1.5rem;
+}
+
+#writeDataTextArea{
+    font-family: monospace;
+    height:80px;
+}
