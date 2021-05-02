@@ -1,12 +1,19 @@
+:root{
+  --main_max_width: 800px;
+}
+
 body {
   display: flex;
   justify-content: center;
 }
+
 #content {
-  width: 750px;
-  padding-left: 20px;
-  padding-right: 20px;
+  width:auto;
+  max-width: var(--main_max_width);
+  margin-left: 20px;
+  margin-right: 20px;
 }
+
 #headerContainer {
   display: flex;
   margin-top: 1rem;
@@ -21,13 +28,13 @@ body {
 
 #driveBay {
   background-color: var(--bs-secondary);
-  width: 100%;
+  max-width: var(--main_max_width);
   height: 250px;
   display: flex;
   align-items: center;
   overflow-x: scroll;
   padding-left: 15px;
-  border-radius: 10px;
+  border-radius: 5px;
   /* box-shadow: 2px 2px 8px 0px rgba(0,0,0,0.3); */
 }
 
@@ -75,6 +82,8 @@ body {
   border-left: 1px solid #888;
   border-top: 1px solid #888;
   cursor: help;
+  font-family: monospace;
+  font-size: large;
 }
 .driveBlock:hover {
   background-color: gainsboro;
@@ -101,4 +110,11 @@ body {
 #writeDataTextArea{
     font-family: monospace;
     height:80px;
+}
+
+#repairControls{
+  margin-top: 1.5rem;
+  display:grid;
+  grid-template-columns: 2fr 1fr;
+  column-gap: 1rem;
 }

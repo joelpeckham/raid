@@ -12,9 +12,11 @@ function uuidv4() {
   });
 }
 
-function randomChar(characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"){
+function randomChar(
+  characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+) {
   let charactersLength = characters.length;
-  return(characters.charAt(Math.floor(Math.random() * charactersLength)));
+  return characters.charAt(Math.floor(Math.random() * charactersLength));
 }
 setInterval(() => {
   for (e of document.getElementsByClassName("wildcard")) {
@@ -30,23 +32,62 @@ setInterval(() => {
 // UI MODELS BEGIN
 // ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
 
-class DriveBay {
+class Array {
   constructor(homeElement) {
     this.home = homeElement;
     this.drives = [];
-    this.selectedDrive;
+    this.arrayType = "0";
   }
   reset() {
-    for (let i = this.drives.length - 1; i >= 0; i--) {
+    for (let i = this.drives.length - 1; i >= 0; i--)
       this.removeDrive(this.drives[i]);
+    this.arrayType = $("raidSelect").value;
+    switch (this.arrayType) {
+      case "0":
+        this.newDrive(2);
+        break;
+      case "1":
+        this.newDrive(2);
+        break;
+      case "10":
+        this.newDrive(4);
+        break;
+      case "4":
+        this.newDrive(3);
+        break;
     }
   }
-  newDrive() {
-    this.drives.push(new DriveViewModel(this.home));
+  write(data) {
+    let dn = this.drives.length;
+    if (this.arrayType == "0") {
+      let cd = 0;
+      for (let c of data) {
+        this.drives[cd].addData(c);
+        cd = (cd + 1) % dn;
+      }
+    } else if (this.arrayType == "1") {
+      for (let c of data) {
+        for(let d of this.drives){
+          d.addData(c);
+        }
+      }
+    } else if (this.arrayType == "10") {
+
+    } else if (this.arrayType == "4") {
+    }
+  }
+  newDrive(amount = 1) {
+    for (let i = 0; i < amount; i++)
+      this.drives.push(new DriveViewModel(this.home));
   }
   removeDrive(drive) {
     this.drives = this.drives.filter((item) => item !== drive);
     $(drive.htmlID).remove();
+  }
+  addDrive(){
+    let oldAmount = this.drives.length;
+    this.reset();
+    this.newDrive(oldAmount - this.drives.length + 1);
   }
 }
 // ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
@@ -54,13 +95,13 @@ class DriveBay {
 // ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
 
 // ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
-// ENTRY POINT BEGIN
+// GLOBAL OBJECTS BEGIN
 // ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
 
-var driveBay = new DriveBay($("driveBay"));
+var driveBay = new Array($("driveBay"));
 
 // ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
-// ENTRY POINT END
+// GLOBAL OBJECTS END
 // ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
 
 // ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
@@ -76,6 +117,7 @@ class DriveViewModel {
       this.allWild();
     });
     this.wildBlocks = [];
+    this.data = [];
   }
   addWildBlock(blockNum, block = null) {
     if (!block) block = $(`drive_${this.htmlID}_block_${blockNum}`);
@@ -87,6 +129,11 @@ class DriveViewModel {
       let block = $(`drive_${this.htmlID}_block_${i}`);
       this.addWildBlock(i, block);
     }
+  }
+  addData(value, pos = null) {
+    if (pos == null) pos = this.data.length;
+    this.data.splice(pos, 0, value);
+    $(`drive_${this.htmlID}_block_${pos}`).innerText = value;
   }
   render() {
     var template = document.createElement("template");
@@ -100,13 +147,13 @@ class DriveViewModel {
           <p></p>
         </div>\n`;
     }
-    // 	fa fa-window-close-o
+    
     template.innerHTML = `
       <div id='${this.htmlID}' class='drive'>
         <div class="driveGridContainer">
           ${gridElements}
         </div>
-        <button type="button" class="btn btn-danger" id="delete_${this.htmlID}"><i class="fa fa-exclamation-triangle"></i></button>
+        <button type="button" class="btn btn-danger" id="delete_${this.htmlID}"><i class="fa fa fa-window-close-o"></i></button>
       </div>
       `;
     this.home.appendChild(template.content);
@@ -136,7 +183,7 @@ class DriveViewModel {
 // ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
 
 $("addDriveButton").addEventListener("click", () => {
-  driveBay.newDrive();
+  driveBay.addDrive();
 });
 $("resetButton").addEventListener("click", () => {
   driveBay.reset();
@@ -146,14 +193,27 @@ $("raidSelect").addEventListener("change", () => {
 });
 $("randomDataButton").addEventListener("click", () => {
   randomData = "";
-  for(i=0; i<200;i++){
-    randomData+=randomChar();
+  for (i = 0; i < 200; i++) {
+    randomData += randomChar();
   }
-  $('writeDataTextArea').value = randomData;
+  $("writeDataTextArea").value = randomData;
 });
 $("clearDataButton").addEventListener("click", () => {
-  $('writeDataTextArea').value = '';
+  $("writeDataTextArea").value = "";
+});
+$("writeDataButton").addEventListener("click", () => {
+  driveBay.write("TESTING");
 });
 // ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 // UI BINDINGS END
+// ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+
+// ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+// ENTRY POINT BEGIN
+// ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+
+driveBay.reset();
+
+// ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+// ENTRY POINT END
 // ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
