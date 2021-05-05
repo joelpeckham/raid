@@ -58,6 +58,7 @@ class Array {
     }
   }
   write(data) {
+    this.clearDrives();
     let dn = this.drives.length;
     if (this.arrayType == "0") {
       let cd = 0;
@@ -67,13 +68,31 @@ class Array {
       }
     } else if (this.arrayType == "1") {
       for (let c of data) {
-        for(let d of this.drives){
+        for (let d of this.drives) {
           d.addData(c);
         }
       }
     } else if (this.arrayType == "10") {
-
+      let cd = 0;
+      for (let c of data) {
+        this.drives[cd].addData(c);
+        this.drives[cd + (dn/2)].addData(c);
+        cd = (cd + 1) % (dn/2);
+      }
     } else if (this.arrayType == "4") {
+      let cd = 0;
+      for (let c of data) {
+        this.drives[cd].addData(c);
+        if (cd == dn-2){
+          let pos = this.drives[dn-1].data.length;
+          let sum = this.drives[0].data[pos];;
+          for (let i = 1; i<dn-1; i++){
+            sum += this.drives[i].data[pos];
+          }
+          this.drives[dn-1].addData(sum);
+        }
+        cd = (cd + 1) % (dn-1);
+      }
     }
   }
   newDrive(amount = 1) {
@@ -84,11 +103,17 @@ class Array {
     this.drives = this.drives.filter((item) => item !== drive);
     $(drive.htmlID).remove();
   }
-  addDrive(){
+  clearDrives(){
     let oldAmount = this.drives.length;
     this.reset();
-    this.newDrive(oldAmount - this.drives.length + 1);
+    this.newDrive(oldAmount - this.drives.length);
   }
+  addDrive() {
+    this.clearDrives();
+    let even = this.arrayType == "10";
+    this.newDrive(1+even);
+  }
+  
 }
 // ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 // UI MODELS END
@@ -132,6 +157,7 @@ class DriveViewModel {
   }
   addData(value, pos = null) {
     if (pos == null) pos = this.data.length;
+    if (pos >= 16) return;
     this.data.splice(pos, 0, value);
     $(`drive_${this.htmlID}_block_${pos}`).innerText = value;
   }
@@ -147,7 +173,7 @@ class DriveViewModel {
           <p></p>
         </div>\n`;
     }
-    
+
     template.innerHTML = `
       <div id='${this.htmlID}' class='drive'>
         <div class="driveGridContainer">
@@ -191,18 +217,28 @@ $("resetButton").addEventListener("click", () => {
 $("raidSelect").addEventListener("change", () => {
   driveBay.reset();
 });
-$("randomDataButton").addEventListener("click", () => {
-  randomData = "";
-  for (i = 0; i < 200; i++) {
-    randomData += randomChar();
-  }
-  $("writeDataTextArea").value = randomData;
-});
+let textarea = $("writeDataTextArea");
+function getRandomText() {
+  fetch("http://www.randomtext.me/api/gibberish/p-1/15")
+    .then((response) => response.json())
+    .then((data) => {
+      textarea.value = data.text_out
+        .replace(/(<([^>]+)>)/gi, "")
+        .replaceAll(" ", "_");
+    });
+}
+$("randomDataButton").addEventListener("click", getRandomText);
 $("clearDataButton").addEventListener("click", () => {
-  $("writeDataTextArea").value = "";
+  textarea.value = "";
 });
 $("writeDataButton").addEventListener("click", () => {
-  driveBay.write("TESTING");
+  driveBay.write(textarea.value);
+});
+$("writeDataTextArea").addEventListener("input", (e) => {
+  textarea.value = textarea.value.replaceAll(" ", "_");
+});
+textarea.addEventListener("keydown", (e) => {
+  if (e.keyCode == 13) e.preventDefault();
 });
 // ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 // UI BINDINGS END
@@ -213,6 +249,8 @@ $("writeDataButton").addEventListener("click", () => {
 // ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
 
 driveBay.reset();
+// getRandomText();
+textarea.value = "ABCDEFGHIJKLMNOP"
 
 // ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 // ENTRY POINT END

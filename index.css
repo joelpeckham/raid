@@ -8,7 +8,7 @@ body {
 }
 
 #content {
-  width:auto;
+  width:700px;
   max-width: var(--main_max_width);
   margin-left: 20px;
   margin-right: 20px;
