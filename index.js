@@ -3,7 +3,7 @@
 // ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
 
 let $ = document.getElementById.bind(document); //Poor man's jQuery
-
+let wildSentinel = new Object();
 function uuidv4() {
   return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
     var r = (Math.random() * 16) | 0,
@@ -76,24 +76,86 @@ class Array {
       let cd = 0;
       for (let c of data) {
         this.drives[cd].addData(c);
-        this.drives[cd + (dn/2)].addData(c);
-        cd = (cd + 1) % (dn/2);
+        this.drives[cd + dn / 2].addData(c);
+        cd = (cd + 1) % (dn / 2);
       }
     } else if (this.arrayType == "4") {
       let cd = 0;
       for (let c of data) {
         this.drives[cd].addData(c);
-        if (cd == dn-2){
-          let pos = this.drives[dn-1].data.length;
-          let sum = this.drives[0].data[pos];;
-          for (let i = 1; i<dn-1; i++){
-            sum += this.drives[i].data[pos];
+        if (cd == dn - 2) {
+          let pos = this.drives[dn - 1].data.length;
+          let sum = this.drives[0].data[pos].charCodeAt(0);
+          for (let i = 1; i < dn - 1; i++) {
+            sum += this.drives[i].data[pos].charCodeAt(0);
           }
-          this.drives[dn-1].addData(sum);
+          this.drives[dn - 1].addData(sum);
         }
-        cd = (cd + 1) % (dn-1);
+        cd = (cd + 1) % (dn - 1);
       }
     }
+  }
+  repair() {
+    let failText = "";
+    let dn = this.drives.length;
+    let k = 0;
+    for (let d of this.drives) {
+      let i = 0;
+      for (let b of d.data) {
+        if (b === wildSentinel) {
+          let rebuildData = [];
+          if (this.arrayType == "0") {
+            failText = "Rebuild failed. Cannot repair RAID 0 array.";
+          } else {
+            let j = 0;
+            for (let rd of this.drives) {
+              if (rd != d) {
+                if (this.arrayType == "10") {
+                  if (j % 2 == k % 2) {
+                    if (rd.data[i] != wildSentinel)
+                      rebuildData.push(rd.data[i]);
+                  }
+                } else {
+                  if (rd.data[i] != wildSentinel) rebuildData.push(rd.data[i]);
+                }
+              }
+              j++;
+            }
+            if (this.arrayType == "4") {
+              console.log(rebuildData);
+              if (rebuildData.length >= dn - 1) {
+                if (Number.isInteger(rebuildData[rebuildData.length - 1])) {
+                  let lastNum = rebuildData[rebuildData.length - 1];
+                  for (let x = 0; x < rebuildData.length - 1; x++) {
+                    lastNum -= rebuildData[x].charCodeAt(0);
+                  }
+                  d.removeWildBlock(i, String.fromCharCode(lastNum));
+                } else {
+                  d.removeWildBlock(
+                    i,
+                    rebuildData.reduce(
+                      (a, b) => a.charCodeAt(0) + b.charCodeAt(0)
+                    )
+                  );
+                }
+              }
+              else{
+                failText = "Rebuild failed. Too much damage.";
+              }
+            } else if (this.arrayType == "1" || this.arrayType == "10") {
+              if (rebuildData[0]) {
+                d.removeWildBlock(i, rebuildData[0]);
+              } else {
+                failText = "Rebuild failed. Too much damage.";
+              }
+            }
+          }
+        }
+        i++;
+      }
+      k++;
+    }
+    if (failText != "") alert(failText);
   }
   newDrive(amount = 1) {
     for (let i = 0; i < amount; i++)
@@ -103,7 +165,7 @@ class Array {
     this.drives = this.drives.filter((item) => item !== drive);
     $(drive.htmlID).remove();
   }
-  clearDrives(){
+  clearDrives() {
     let oldAmount = this.drives.length;
     this.reset();
     this.newDrive(oldAmount - this.drives.length);
@@ -111,9 +173,8 @@ class Array {
   addDrive() {
     this.clearDrives();
     let even = this.arrayType == "10";
-    this.newDrive(1+even);
+    this.newDrive(1 + even);
   }
-  
 }
 // ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 // UI MODELS END
@@ -141,13 +202,20 @@ class DriveViewModel {
     $(`delete_${this.htmlID}`).addEventListener("click", () => {
       this.allWild();
     });
-    this.wildBlocks = [];
     this.data = [];
+    wildSentinel = new Object();
   }
   addWildBlock(blockNum, block = null) {
     if (!block) block = $(`drive_${this.htmlID}_block_${blockNum}`);
+    if (block.innerText == "") return;
     block.classList.add("wildcard");
-    this.wildBlocks.push(blockNum);
+    this.data[blockNum] = wildSentinel;
+  }
+  removeWildBlock(blockNum, data) {
+    let block = $(`drive_${this.htmlID}_block_${blockNum}`);
+    block.classList.remove("wildcard");
+    this.data[blockNum] = data;
+    block.innerText = data;
   }
   allWild() {
     for (let i = 0; i < 16; i++) {
@@ -197,14 +265,6 @@ class DriveViewModel {
 // ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
 
 // ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
-// UI HANDLERS BEGIN
-// ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
-
-// ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
-// UI HANDLERS END
-// ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
-
-// ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 // UI BINDINGS BEGIN
 // ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
 
@@ -240,6 +300,9 @@ $("writeDataTextArea").addEventListener("input", (e) => {
 textarea.addEventListener("keydown", (e) => {
   if (e.keyCode == 13) e.preventDefault();
 });
+$("repairButton").addEventListener("click", () => {
+  driveBay.repair();
+});
 // ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 // UI BINDINGS END
 // ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
@@ -250,7 +313,7 @@ textarea.addEventListener("keydown", (e) => {
 
 driveBay.reset();
 // getRandomText();
-textarea.value = "ABCDEFGHIJKLMNOP"
+textarea.value = "ABCDEFGHIJKLMNOP";
 
 // ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 // ENTRY POINT END
