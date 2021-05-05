@@ -115,6 +115,6 @@ body {
 #repairControls{
   margin-top: 1.5rem;
   display:grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: 1fr;
   column-gap: 1rem;
 }

@@ -122,7 +122,6 @@ class Array {
               j++;
             }
             if (this.arrayType == "4") {
-              console.log(rebuildData);
               if (rebuildData.length >= dn - 1) {
                 if (Number.isInteger(rebuildData[rebuildData.length - 1])) {
                   let lastNum = rebuildData[rebuildData.length - 1];
