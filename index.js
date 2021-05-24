@@ -278,7 +278,7 @@ $("raidSelect").addEventListener("change", () => {
 });
 let textarea = $("writeDataTextArea");
 function getRandomText() {
-  fetch("http://www.randomtext.me/api/gibberish/p-1/15")
+  fetch("https://www.randomtext.me/api/gibberish/p-1/15")
     .then((response) => response.json())
     .then((data) => {
       textarea.value = data.text_out
